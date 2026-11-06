@@ -1,8 +1,9 @@
 /* ==========================================================================
    BYD Nelson — Admin app logic
    Static site: no server. All edits live in the browser until you press
-   Publish, which writes data/cars.json + data/news.json to GitHub via the
-   Contents API using a Personal Access Token kept in localStorage.
+   Publish, which writes data/cars.json + data/news.json + data/settings.json
+   to GitHub via the Contents API using a Personal Access Token kept in
+   localStorage.
    ========================================================================== */
 
 const REPO   = 'Ebubechineka/byd-nelson';
@@ -24,17 +25,46 @@ function setToken(t) { localStorage.setItem(TOKEN_KEY, t.trim()); }
 function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
 /* ---------- data access ---------- */
-const DATA = { cars: [], news: [] };
+const DATA = { cars: [], news: [], settings: {} };
 
 async function loadData() {
   const bust = '?t=' + Date.now();
-  const [c, n] = await Promise.all([
+  const [c, n, s] = await Promise.all([
     fetch('../data/cars.json' + bust, { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
-    fetch('../data/news.json' + bust, { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => [])
+    fetch('../data/news.json' + bust, { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+    fetch('../data/settings.json' + bust, { cache: 'no-store' }).then(r => r.ok ? r.json() : {}).catch(() => ({}))
   ]);
   DATA.cars = Array.isArray(c) ? c : [];
   DATA.news = Array.isArray(n) ? n : [];
+  DATA.settings = (s && typeof s === 'object' && !Array.isArray(s)) ? s : {};
   return DATA;
+}
+
+/* ---------- dealership contact details ---------- */
+const SETTINGS_KEY = 'byd_site_settings';
+
+function getSettings() {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* fall through */ }
+  return DATA.settings || {};
+}
+
+function setSettings(s) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  DATA.settings = s;
+}
+
+async function loadSettings() {
+  if (!DATA.settings || !Object.keys(DATA.settings).length) {
+    const bust = '?t=' + Date.now();
+    const s = await fetch('../data/settings.json' + bust, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : {})
+      .catch(() => ({}));
+    DATA.settings = (s && typeof s === 'object' && !Array.isArray(s)) ? s : {};
+  }
+  return getSettings();
 }
 
 /* ---------- helpers ---------- */
@@ -166,6 +196,10 @@ async function publishAll() {
     JSON.stringify(DATA.news, null, 2) + '\n',
     'Admin: update news posts (' + stamp + ')'));
 
+  results.push(await ghPut('data/settings.json',
+    JSON.stringify(getSettings(), null, 2) + '\n',
+    'Admin: update dealership contact details (' + stamp + ')'));
+
   return results;
 }
 
@@ -175,5 +209,6 @@ window.BYD = {
   requireAuth, logout,
   getToken, setToken, clearToken, verifyToken,
   loadData, publishAll,
+  getSettings, setSettings, loadSettings,
   esc, money, toast, uid, readImageFile
 };

@@ -61,7 +61,51 @@
 
 <div class="wrap">
   <h1>Settings</h1>
-  <p class="lead">Connect this admin to your GitHub repository so the Publish button can update the live site.</p>
+  <p class="lead">Your dealership contact details, and the connection that lets the Publish button update the live site.</p>
+
+  <div class="card">
+    <h2>Dealership contact details</h2>
+    <p class="d">These appear in the footer of every page and on the Contact page. Change them here, then press <b>Save details</b> and <b>Publish</b>.</p>
+
+    <label for="s_address">Street address</label>
+    <input id="s_address" type="text" placeholder="150 Rutherford Street, Nelson 7010" style="font-family:inherit">
+
+    <div style="margin-top:16px">
+      <label for="s_phone">Phone number</label>
+      <input id="s_phone" type="text" placeholder="03 546 6550" style="font-family:inherit">
+    </div>
+
+    <div style="margin-top:16px">
+      <label for="s_email">Email address</label>
+      <input id="s_email" type="text" placeholder="byd@carcompanynelson.co.nz" style="font-family:inherit">
+    </div>
+
+    <div style="margin-top:16px">
+      <label for="s_hours_weekday">Opening hours &mdash; Monday to Friday</label>
+      <input id="s_hours_weekday" type="text" placeholder="8:30AM – 5:30PM" style="font-family:inherit">
+    </div>
+
+    <div style="margin-top:16px">
+      <label for="s_hours_saturday">Opening hours &mdash; Saturday</label>
+      <input id="s_hours_saturday" type="text" placeholder="9:30AM – 5:00PM" style="font-family:inherit">
+    </div>
+
+    <div style="margin-top:16px">
+      <label for="s_hours_sunday">Opening hours &mdash; Sunday</label>
+      <input id="s_hours_sunday" type="text" placeholder="By Appointment" style="font-family:inherit">
+    </div>
+
+    <div class="row">
+      <button class="btn primary" onclick="saveDetails()">Save details</button>
+      <button class="btn" onclick="reloadDetails()">Undo changes</button>
+    </div>
+
+    <div class="status" id="st2"></div>
+
+    <div class="note">
+      <b>Remember:</b> saving here only changes this browser. Press <b>Publish to live site</b> on the admin dashboard to make the new details appear on the website.
+    </div>
+  </div>
 
   <div class="card">
     <h2>GitHub access token</h2>
@@ -111,6 +155,40 @@
 if (BYD.requireAuth()) {
   const inp = document.getElementById('tok');
   if (BYD.getToken()) inp.value = BYD.getToken();
+
+  /* ---------- dealership contact details ---------- */
+  const FIELDS = ['address', 'phone', 'email', 'hours_weekday', 'hours_saturday', 'hours_sunday'];
+
+  function show2(msg, kind) {
+    const st = document.getElementById('st2');
+    st.className = 'status on ' + kind;
+    st.innerHTML = msg;
+  }
+
+  window.reloadDetails = async function () {
+    show2('Loading…', 'info');
+    try {
+      const s = await BYD.loadSettings();
+      FIELDS.forEach(f => { document.getElementById('s_' + f).value = s[f] || ''; });
+      show2('Loaded the details currently on the live site.', 'ok');
+    } catch (e) {
+      show2(BYD.esc(e.message), 'bad');
+    }
+  };
+
+  window.saveDetails = function () {
+    const s = {};
+    FIELDS.forEach(f => { s[f] = document.getElementById('s_' + f).value.trim(); });
+    if (!s.address && !s.phone && !s.email) {
+      show2('Fill in at least the address, phone or email.', 'bad');
+      return;
+    }
+    BYD.setSettings(s);
+    show2('Details saved in this browser. Now go to the dashboard and press <b>Publish to live site</b>.', 'ok');
+    BYD.toast('Details saved. Press Publish to make them live.', 'ok');
+  };
+
+  reloadDetails();
 
   function show(msg, kind) {
     const st = document.getElementById('st');

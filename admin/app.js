@@ -10,18 +10,13 @@ const BRANCH = 'main';
 const TOKEN_KEY = 'byd_gh_token';
 const SESSION_KEY = 'byd_admin_session';
 
-/* ---------- auth guard ---------- */
-function requireAuth() {
-  if (sessionStorage.getItem(SESSION_KEY) !== 'ok') {
-    location.replace('login.html');
-    return false;
-  }
-  return true;
-}
-function logout() {
-  sessionStorage.removeItem(SESSION_KEY);
-  location.replace('login.html');
-}
+/* ---------- auth guard ----------
+   The password login gate has been removed: the admin panel now opens
+   straight to the dashboard. Publishing is protected by the GitHub token,
+   which only the owner holds. requireAuth() is kept as a no-op so the
+   existing page scripts keep working. */
+function requireAuth() { return true; }
+function logout() { location.href = 'index.html'; }
 
 /* ---------- token ---------- */
 function getToken() { return localStorage.getItem(TOKEN_KEY) || ''; }

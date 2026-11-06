@@ -81,3 +81,64 @@ Example: `https://ebubechineka.github.io/byd-nelson/`
 - **Forms will not submit.** The contact and enquiry forms were connected to the original WordPress backend. To make them work, point them at a service like Formspree, Netlify Forms, or your own endpoint.
 - **Vehicle data is static.** Listings won't update automatically; they're a snapshot.
 - This is a **clone for demonstration/portfolio purposes.** The BYD name, logo and vehicle imagery belong to BYD and the original dealership.
+
+---
+
+## Content Admin
+
+The site now has a browser-based admin panel at **`/admin/`** so the owner can manage cars and news without touching code.
+
+| Path | What it is |
+|---|---|
+| `admin/login.html` | Password gate |
+| `admin/index.html` | Dashboard — Cars & Prices, News |
+| `admin/settings.html` | GitHub token setup |
+| `admin/config.json` | The admin password (edit this to change it) |
+| `admin/app.js` | Shared logic + GitHub publishing |
+| `data/cars.json` | All vehicle data — the public pages read this |
+| `data/news.json` | All news posts — the public pages read this |
+| `inventory.html` | Public "In Stock" listing (reads `data/cars.json`) |
+| `car.html?id=…` | Public vehicle detail page (reads `data/cars.json`) |
+
+### Signing in
+
+Open **`/admin/login.html`** and enter the password. The default is:
+
+```
+changeme123
+```
+
+**Change it before going live.** Edit `admin/config.json` and replace the value:
+
+```json
+{ "password": "your-new-password" }
+```
+
+### What you can do
+
+- **Cars & Prices** — edit any price inline in the table, then press *Save price changes*. Add, edit or delete vehicles with the full form (name, model, year, price, mileage, transmission, fuel, body type, description, photo upload).
+- **News** — add, edit or delete posts with a title, date, summary, body text and image.
+- **Publish** — writes `data/cars.json` and `data/news.json` back to GitHub and commits them, so the live site updates in about a minute.
+
+### How publishing works (important)
+
+This is a **static site on GitHub Pages — there is no server**. Nothing is saved on a backend, because there isn't one. That means:
+
+1. Your edits live **in your browser** while you work.
+2. Pressing **Publish** sends the two data files to GitHub through the **GitHub API**, using a personal access token.
+3. GitHub Pages then rebuilds and the live site shows the changes.
+
+If you close the tab without publishing, your unsaved edits are lost. Always press **Publish** when you're done.
+
+### Setting up the token (one time)
+
+1. Go to **github.com/settings/tokens** → *Generate new token (classic)*
+2. Name it `byd-nelson-admin`, tick the **`repo`** scope, set an expiry
+3. Copy the `ghp_…` value
+4. Open **`/admin/settings.html`**, paste it, press **Save token**, then **Test connection**
+
+The token is stored **only in your browser's localStorage**. It is never written into the site's files and never sent anywhere except `api.github.com`. To remove it, press *Remove token* on the settings page.
+
+### A note on the password
+
+The login is a simple client-side gate — it keeps casual visitors out of the admin screens, but it is not real authentication. The actual protection is the GitHub token: without it, nobody can publish anything, no matter what they do in the admin panel.

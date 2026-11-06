@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Admin — BYD Nelson</title>
+<link rel="icon" href="../favicon.png">
+<style>
+  :root{--byd:#003CBE;--ink:#0d1117;--muted:#6b7280;--line:#e5e7eb;--bg:#f6f7f9;--ok:#059669;--warn:#b45309;--bad:#b91c1c}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);font-size:14px}
+  a{color:var(--byd)}
+
+  /* top bar */
+  .top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .top .in{max-width:1180px;margin:0 auto;padding:0 22px;height:62px;display:flex;align-items:center;gap:14px}
+  .logo{width:32px;height:32px;border-radius:8px;background:var(--byd);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+  .top b{font-size:14.5px}
+  .top .sub{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+  .spacer{flex:1}
+  .btn{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:8px;font-size:13px;
+       font-weight:600;cursor:pointer;color:var(--ink);transition:.15s;text-decoration:none;display:inline-block}
+  .btn:hover{background:#f9fafb;border-color:#d1d5db}
+  .btn.primary{background:var(--byd);border-color:var(--byd);color:#fff}
+  .btn.primary:hover{background:#0032a0}
+  .btn.danger{color:var(--bad);border-color:#fecaca}
+  .btn.danger:hover{background:#fef2f2}
+  .btn.sm{padding:5px 10px;font-size:12px;border-radius:6px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* layout */
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 80px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:24px}
+  .tab{padding:11px 18px;border:0;background:none;font-size:13.5px;font-weight:600;color:var(--muted);
+       cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab.on{color:var(--byd);border-bottom-color:var(--byd)}
+  .panel{display:none}
+  .panel.on{display:block}
+
+  .head{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+  .head h2{font-size:17px;margin:0}
+  .head .count{font-size:12px;color:var(--muted);background:#eef2f7;padding:3px 9px;border-radius:20px;font-weight:600}
+
+  /* cards / tables */
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+     padding:11px 14px;background:#fafbfc;border-bottom:1px solid var(--line);font-weight:700;white-space:nowrap}
+  td{padding:12px 14px;border-bottom:1px solid #f1f3f5;vertical-align:middle}
+  tr:last-child td{border-bottom:0}
+  tr:hover td{background:#fcfcfd}
+  .thumb{width:64px;height:44px;object-fit:cover;border-radius:6px;background:#eef1f4;display:block}
+  .t-title{font-weight:600;font-size:13.5px;line-height:1.35;max-width:340px}
+  .t-meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .price-in{width:112px;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:13px;
+            font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .price-in:focus{outline:none;border-color:var(--byd);box-shadow:0 0 0 3px rgba(0,60,190,.1)}
+  .price-in.dirty{border-color:#f59e0b;background:#fffbeb}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;
+         justify-content:center;padding:40px 20px;z-index:100;overflow:auto}
+  .modal.on{display:flex}
+  .sheet{background:#fff;border-radius:14px;width:100%;max-width:660px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .sheet .sh{display:flex;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .sheet .sh h3{margin:0;font-size:16px}
+  .sheet .sb{padding:22px;max-height:calc(100vh - 220px);overflow:auto}
+  .sheet .sf{padding:16px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;background:#fafbfc;border-radius:0 0 14px 14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .fld{margin-bottom:14px}
+  .fld label{display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#374151}
+  .fld input,.fld select,.fld textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;
+        font-size:13.5px;font-family:inherit;outline:none}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--byd);box-shadow:0 0 0 3px rgba(0,60,190,.1)}
+  .fld textarea{min-height:110px;resize:vertical;line-height:1.55}
+  .fld .hint{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .imgprev{width:100%;max-height:170px;object-fit:cover;border-radius:8px;border:1px solid var(--line);margin-top:8px;display:none}
+  .imgprev.on{display:block}
+
+  /* toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#111827;color:#fff;
+         padding:12px 20px;border-radius:10px;font-size:13.5px;font-weight:500;opacity:0;pointer-events:none;
+         transition:.25s;z-index:200;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.ok{background:#065f46}
+  .toast.bad{background:#991b1b}
+
+  .empty{padding:56px 20px;text-align:center;color:var(--muted);font-size:13.5px}
+  .banner{padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:18px;line-height:1.5}
+  .banner.warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e}
+  .banner.ok{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}
+  .banner a{font-weight:600}
+  @media(max-width:760px){
+    .grid2{grid-template-columns:1fr}
+    .hide-sm{display:none}
+    .t-title{max-width:180px}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="in">
+    <div class="logo">BYD</div>
+    <div><b>BYD Nelson</b><div class="sub">Content Admin</div></div>
+    <div class="spacer"></div>
+    <a class="btn sm" href="../index.html" target="_blank">View site ↗</a>
+    <a class="btn sm" href="settings.html">Settings</a>
+    <button class="btn sm" onclick="BYD.logout()">Sign out</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div id="tokenBanner"></div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="cars">Cars &amp; Prices</button>
+    <button class="tab" data-tab="news">News</button>
+  </div>
+
+  <!-- ================= CARS ================= -->
+  <section class="panel on" id="panel-cars">
+    <div class="head">
+      <h2>Inventory</h2>
+      <span class="count" id="carCount">0</span>
+      <div class="spacer"></div>
+      <button class="btn" id="savePrices" disabled>Save price changes</button>
+      <button class="btn primary" onclick="openCar()">+ Add car</button>
+    </div>
+    <p style="margin:-6px 0 16px;color:#6b7280;font-size:12.5px">
+      Edit a price directly in the table, then press <b>Save price changes</b>. Nothing goes live until you press <b>Publish</b>.
+    </p>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th class="hide-sm" style="width:80px">Photo</th>
+            <th>Vehicle</th>
+            <th class="hide-sm">Spec</th>
+            <th style="width:140px">Price</th>
+            <th style="width:150px"></th>
+          </tr>
+        </thead>
+        <tbody id="carRows"></tbody>
+      </table>
+      <div class="empty" id="carEmpty" style="display:none">No cars yet. Click “Add car” to create one.</div>
+    </div>
+  </section>
+
+  <!-- ================= NEWS ================= -->
+  <section class="panel" id="panel-news">
+    <div class="head">
+      <h2>News &amp; announcements</h2>
+      <span class="count" id="newsCount">0</span>
+      <div class="spacer"></div>
+      <button class="btn primary" onclick="openNews()">+ Add post</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th class="hide-sm" style="width:80px">Image</th>
+            <th>Title</th>
+            <th class="hide-sm" style="width:120px">Date</th>
+            <th style="width:150px"></th>
+          </tr>
+        </thead>
+        <tbody id="newsRows"></tbody>
+      </table>
+      <div class="empty" id="newsEmpty" style="display:none">No posts yet. Click “Add post” to write one.</div>
+    </div>
+  </section>
+
+  <div style="margin-top:26px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <button class="btn primary" id="publishBtn" onclick="doPublish()">Publish to live site</button>
+    <span style="font-size:12.5px;color:#6b7280" id="publishNote">Writes data files to GitHub and commits them.</span>
+  </div>
+</div>
+
+<!-- ================= CAR MODAL ================= -->
+<div class="modal" id="carModal">
+  <div class="sheet">
+    <div class="sh"><h3 id="carModalTitle">Add car</h3></div>
+    <div class="sb">
+      <div class="fld">
+        <label>Title</label>
+        <input id="c_title" placeholder="2026 BYD Atto 2 PREMIUM 51KWH">
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Year</label><input id="c_year" placeholder="2026"></div>
+        <div class="fld"><label>Model</label><input id="c_model" placeholder="Atto 2"></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Price</label><input id="c_price" placeholder="43990"><div class="hint">Numbers only — $ and commas are added automatically.</div></div>
+        <div class="fld"><label>Odometer</label><input id="c_mileage" placeholder="634km"></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Transmission</label>
+          <select id="c_transmission">
+            <option>Automatic</option><option>Manual</option><option>Tiptronic</option>
+          </select>
+        </div>
+        <div class="fld"><label>Fuel</label>
+          <select id="c_fuel">
+            <option>Electricity</option><option>Petrol</option><option>Diesel</option>
+            <option>Hybrid</option><option>Plug-in hybrid</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Body type</label><input id="c_body" placeholder="5 Door, SUV"></div>
+        <div class="fld"><label>Colour</label><input id="c_colour" placeholder="Harbour Grey"></div>
+      </div>
+      <div class="fld">
+        <label>Short description</label>
+        <input id="c_short" placeholder="EX DEMO AVAILABLE FOR IMMEDIATE DELIVERY">
+      </div>
+      <div class="fld">
+        <label>Full description</label>
+        <textarea id="c_desc" placeholder="Describe the vehicle…"></textarea>
+      </div>
+      <div class="fld">
+        <label>Photo</label>
+        <input type="file" id="c_photo" accept="image/*">
+        <div class="hint">Uploaded photos are embedded in the data file (resized to 1400px wide).</div>
+        <img class="imgprev" id="c_prev" alt="">
+      </div>
+    </div>
+    <div class="sf">
+      <button class="btn" onclick="closeModal('carModal')">Cancel</button>
+      <button class="btn primary" onclick="saveCar()">Save car</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= NEWS MODAL ================= -->
+<div class="modal" id="newsModal">
+  <div class="sheet">
+    <div class="sh"><h3 id="newsModalTitle">Add post</h3></div>
+    <div class="sb">
+      <div class="fld"><label>Title</label><input id="n_title" placeholder="You're invited to our BYD Drive Day"></div>
+      <div class="fld"><label>Date</label><input id="n_date" type="date"></div>
+      <div class="fld">
+        <label>Summary</label>
+        <textarea id="n_excerpt" style="min-height:70px" placeholder="One or two sentences shown on the news list."></textarea>
+      </div>
+      <div class="fld">
+        <label>Body</label>
+        <textarea id="n_body" style="min-height:180px" placeholder="Write the post. Blank lines become paragraphs."></textarea>
+        <div class="hint">Plain text is fine — blank lines separate paragraphs.</div>
+      </div>
+      <div class="fld">
+        <label>Image</label>
+        <input type="file" id="n_photo" accept="image/*">
+        <img class="imgprev" id="n_prev" alt="">
+      </div>
+    </div>
+    <div class="sf">
+      <button class="btn" onclick="closeModal('newsModal')">Cancel</button>
+      <button class="btn primary" onclick="saveNews()">Save post</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+/* ===================== boot ===================== */
+if (BYD.requireAuth()) {
+  BYD.loadData().then(() => { renderCars(); renderNews(); renderTokenBanner(); });
+}
+
+/* ===================== tabs ===================== */
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('panel-' + t.dataset.tab).classList.add('on');
+  });
+});
+
+/* ===================== token banner ===================== */
+function renderTokenBanner() {
+  const el = document.getElementById('tokenBanner');
+  if (!BYD.getToken()) {
+    el.innerHTML = '<div class="banner warn"><b>No GitHub token saved.</b> You can edit everything here, but <b>Publish</b> needs a token. <a href="settings.html">Add one in Settings →</a></div>';
+  } else {
+    el.innerHTML = '<div class="banner ok">GitHub token saved in this browser. Publishing is enabled.</div>';
+  }
+}
+
+/* ===================== CARS ===================== */
+let priceDirty = false;
+
+function renderCars() {
+  const tb = document.getElementById('carRows');
+  const cars = BYD.DATA.cars;
+  document.getElementById('carCount').textContent = cars.length + (cars.length === 1 ? ' car' : ' cars');
+  document.getElementById('carEmpty').style.display = cars.length ? 'none' : 'block';
+
+  tb.innerHTML = cars.map((c, i) => {
+    const img = (c.images && c.images[0]) ? '../' + c.images[0] : '';
+    return `<tr>
+      <td class="hide-sm">${img ? `<img class="thumb" src="${BYD.esc(img)}" alt="" loading="lazy">` : '<div class="thumb"></div>'}</td>
+      <td>
+        <div class="t-title">${BYD.esc(c.title || '(untitled)')}</div>
+        <div class="t-meta">Stock# ${BYD.esc(c.stock || c.id || '—')}${c.year ? ' · ' + BYD.esc(c.year) : ''}</div>
+      </td>
+      <td class="hide-sm"><div class="t-meta">${BYD.esc(c.mileage || '—')} · ${BYD.esc(c.transmission || '—')}<br>${BYD.esc(c.fuel || '—')}</div></td>
+      <td>
+        <input class="price-in" data-i="${i}" value="${BYD.esc(String(c.price || '').replace(/[^0-9.]/g, ''))}" inputmode="numeric">
+      </td>
+      <td>
+        <div class="row-actions">
+          <button class="btn sm" onclick="openCar(${i})">Edit</button>
+          <button class="btn sm danger" onclick="delCar(${i})">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  tb.querySelectorAll('.price-in').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.classList.add('dirty');
+      priceDirty = true;
+      document.getElementById('savePrices').disabled = false;
+    });
+  });
+}
+
+document.getElementById('savePrices').addEventListener('click', () => {
+  document.querySelectorAll('.price-in').forEach(inp => {
+    const i = +inp.dataset.i;
+    const raw = inp.value.replace(/[^0-9.]/g, '');
+    BYD.DATA.cars[i].price = raw ? BYD.money(raw) : '';
+    inp.value = raw;
+    inp.classList.remove('dirty');
+  });
+  priceDirty = false;
+  document.getElementById('savePrices').disabled = true;
+  BYD.toast('Prices updated. Press Publish to make them live.', 'ok');
+  renderCars();
+});
+
+/* ---- car modal ---- */
+let carEditIndex = -1;
+let carPhotoData = '';
+
+function openCar(i) {
+  carEditIndex = (typeof i === 'number') ? i : -1;
+  const c = carEditIndex >= 0 ? BYD.DATA.cars[carEditIndex] : {};
+  document.getElementById('carModalTitle').textContent = carEditIndex >= 0 ? 'Edit car' : 'Add car';
+
+  document.getElementById('c_title').value = c.title || '';
+  document.getElementById('c_year').value = c.year || '';
+  document.getElementById('c_model').value = c.model || '';
+  document.getElementById('c_price').value = String(c.price || '').replace(/[^0-9.]/g, '');
+  document.getElementById('c_mileage').value = c.mileage || '';
+  document.getElementById('c_transmission').value = c.transmission || 'Automatic';
+  document.getElementById('c_fuel').value = c.fuel || 'Electricity';
+  document.getElementById('c_body').value = c.body_type || '';
+  document.getElementById('c_colour').value = c.colour || '';
+  document.getElementById('c_short').value = c.short_desc || '';
+  document.getElementById('c_desc').value = (c.description || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+  document.getElementById('c_photo').value = '';
+
+  carPhotoData = '';
+  const prev = document.getElementById('c_prev');
+  if (c.images && c.images[0]) { prev.src = '../' + c.images[0]; prev.classList.add('on'); }
+  else { prev.classList.remove('on'); prev.removeAttribute('src'); }
+
+  document.getElementById('carModal').classList.add('on');
+}
+
+document.getElementById('c_photo').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    carPhotoData = await BYD.readImageFile(f);
+    const prev = document.getElementById('c_prev');
+    prev.src = carPhotoData; prev.classList.add('on');
+  } catch (err) { BYD.toast(err.message, 'bad'); }
+});
+
+function saveCar() {
+  const title = document.getElementById('c_title').value.trim();
+  if (!title) { BYD.toast('A title is required.', 'bad'); return; }
+
+  const rawPrice = document.getElementById('c_price').value.replace(/[^0-9.]/g, '');
+  const descText = document.getElementById('c_desc').value.trim();
+  const descHtml = descText
+    ? descText.split(/\n{2,}/).map(p => '<p>' + BYD.esc(p).replace(/\n/g, '<br />') + '</p>').join('')
+    : '';
+
+  const base = carEditIndex >= 0 ? BYD.DATA.cars[carEditIndex] : {};
+  const car = Object.assign({}, base, {
+    id: base.id || BYD.uid('car'),
+    stock: base.stock || '',
+    title,
+    year: document.getElementById('c_year').value.trim(),
+    model: document.getElementById('c_model').value.trim(),
+    price: rawPrice ? BYD.money(rawPrice) : '',
+    mileage: document.getElementById('c_mileage').value.trim(),
+    transmission: document.getElementById('c_transmission').value,
+    fuel: document.getElementById('c_fuel').value,
+    body_type: document.getElementById('c_body').value.trim(),
+    colour: document.getElementById('c_colour').value.trim(),
+    short_desc: document.getElementById('c_short').value.trim(),
+    description: descHtml,
+    images: base.images || [],
+    url: base.url || '',
+    published: true
+  });
+
+  if (carPhotoData) car.images = [carPhotoData].concat((car.images || []).filter(x => !x.startsWith('data:')));
+
+  if (carEditIndex >= 0) BYD.DATA.cars[carEditIndex] = car;
+  else BYD.DATA.cars.unshift(car);
+
+  closeModal('carModal');
+  renderCars();
+  BYD.toast(carEditIndex >= 0 ? 'Car updated.' : 'Car added.', 'ok');
+}
+
+function delCar(i) {
+  const c = BYD.DATA.cars[i];
+  if (!confirm('Delete “' + (c.title || 'this car') + '”?\n\nThis only removes it from the working copy until you press Publish.')) return;
+  BYD.DATA.cars.splice(i, 1);
+  renderCars();
+  BYD.toast('Car deleted. Press Publish to make it live.', 'ok');
+}
+
+/* ===================== NEWS ===================== */
+let newsEditIndex = -1;
+let newsPhotoData = '';
+
+function renderNews() {
+  const tb = document.getElementById('newsRows');
+  const news = BYD.DATA.news;
+  document.getElementById('newsCount').textContent = news.length + (news.length === 1 ? ' post' : ' posts');
+  document.getElementById('newsEmpty').style.display = news.length ? 'none' : 'block';
+
+  tb.innerHTML = news.map((n, i) => {
+    const img = n.image ? (n.image.startsWith('data:') ? n.image : '../' + n.image) : '';
+    return `<tr>
+      <td class="hide-sm">${img ? `<img class="thumb" src="${BYD.esc(img)}" alt="" loading="lazy">` : '<div class="thumb"></div>'}</td>
+      <td>
+        <div class="t-title">${BYD.esc(n.title || '(untitled)')}</div>
+        <div class="t-meta">${BYD.esc((n.excerpt || '').slice(0, 90))}${(n.excerpt || '').length > 90 ? '…' : ''}</div>
+      </td>
+      <td class="hide-sm"><div class="t-meta">${BYD.esc(n.date || '—')}</div></td>
+      <td>
+        <div class="row-actions">
+          <button class="btn sm" onclick="openNews(${i})">Edit</button>
+          <button class="btn sm danger" onclick="delNews(${i})">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openNews(i) {
+  newsEditIndex = (typeof i === 'number') ? i : -1;
+  const n = newsEditIndex >= 0 ? BYD.DATA.news[newsEditIndex] : {};
+  document.getElementById('newsModalTitle').textContent = newsEditIndex >= 0 ? 'Edit post' : 'Add post';
+
+  document.getElementById('n_title').value = n.title || '';
+  document.getElementById('n_date').value = n.date || new Date().toISOString().slice(0, 10);
+  document.getElementById('n_excerpt').value = n.excerpt || '';
+  document.getElementById('n_body').value = (n.body || '')
+    .replace(/<\/p>\s*<p>/gi, '\n\n').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+  document.getElementById('n_photo').value = '';
+
+  newsPhotoData = '';
+  const prev = document.getElementById('n_prev');
+  if (n.image) { prev.src = n.image.startsWith('data:') ? n.image : '../' + n.image; prev.classList.add('on'); }
+  else { prev.classList.remove('on'); prev.removeAttribute('src'); }
+
+  document.getElementById('newsModal').classList.add('on');
+}
+
+document.getElementById('n_photo').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    newsPhotoData = await BYD.readImageFile(f);
+    const prev = document.getElementById('n_prev');
+    prev.src = newsPhotoData; prev.classList.add('on');
+  } catch (err) { BYD.toast(err.message, 'bad'); }
+});
+
+function saveNews() {
+  const title = document.getElementById('n_title').value.trim();
+  if (!title) { BYD.toast('A title is required.', 'bad'); return; }
+
+  const bodyText = document.getElementById('n_body').value.trim();
+  const bodyHtml = bodyText
+    ? bodyText.split(/\n{2,}/).map(p => '<p>' + BYD.esc(p).replace(/\n/g, '<br />') + '</p>').join('\n')
+    : '';
+
+  const base = newsEditIndex >= 0 ? BYD.DATA.news[newsEditIndex] : {};
+  const post = Object.assign({}, base, {
+    id: base.id || BYD.uid('post'),
+    title,
+    date: document.getElementById('n_date').value || new Date().toISOString().slice(0, 10),
+    excerpt: document.getElementById('n_excerpt').value.trim(),
+    body: bodyHtml,
+    image: base.image || '',
+    url: base.url || '',
+    published: true
+  });
+
+  if (newsPhotoData) post.image = newsPhotoData;
+
+  if (newsEditIndex >= 0) BYD.DATA.news[newsEditIndex] = post;
+  else BYD.DATA.news.unshift(post);
+
+  closeModal('newsModal');
+  renderNews();
+  BYD.toast(newsEditIndex >= 0 ? 'Post updated.' : 'Post added.', 'ok');
+}
+
+function delNews(i) {
+  const n = BYD.DATA.news[i];
+  if (!confirm('Delete “' + (n.title || 'this post') + '”?\n\nThis only removes it from the working copy until you press Publish.')) return;
+  BYD.DATA.news.splice(i, 1);
+  renderNews();
+  BYD.toast('Post deleted. Press Publish to make it live.', 'ok');
+}
+
+/* ===================== modal helpers ===================== */
+function closeModal(id) { document.getElementById(id).classList.remove('on'); }
+document.querySelectorAll('.modal').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('on'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal.on').forEach(m => m.classList.remove('on'));
+});
+
+/* ===================== publish ===================== */
+async function doPublish() {
+  const btn = document.getElementById('publishBtn');
+  const note = document.getElementById('publishNote');
+
+  if (!BYD.getToken()) {
+    BYD.toast('Add a GitHub token in Settings first.', 'bad');
+    return;
+  }
+  if (!confirm('Publish these changes to the live site?\n\nThis commits data/cars.json and data/news.json to ' + BYD.REPO + ' (main).')) return;
+
+  btn.disabled = true;
+  const old = btn.textContent;
+  btn.textContent = 'Publishing…';
+  note.textContent = 'Checking token…';
+
+  try {
+    const who = await BYD.verifyToken();
+    note.textContent = 'Committing as ' + who.user + '…';
+    const res = await BYD.publishAll();
+    const sha = res[0] && res[0].commit ? res[0].commit.sha.slice(0, 7) : '';
+    note.textContent = 'Published. Commit ' + sha + ' — live in about a minute.';
+    BYD.toast('Published to GitHub. The live site updates in ~1 minute.', 'ok');
+  } catch (err) {
+    note.textContent = 'Publish failed.';
+    BYD.toast(err.message, 'bad');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = old;
+  }
+}
+</script>
+</body>
+</html>

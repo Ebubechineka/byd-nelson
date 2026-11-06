@@ -953,5 +953,42 @@ var ElementorProFrontendConfig = {"ajaxurl":"https:\/\/bydnelson.co.nz\/wp-admin
 <div class="elfsight-app-d4e0f158-e56b-4143-a620-c0ab71c99377" data-elfsight-app-lazy></div>
 
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a53efc7cebb1d66d',t:'MTc5MzU3ODk2MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a53efc7cebb1d66d',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a53efc7cebb1d66d',t:'MTc5MzU3ODk2MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a53efc7cebb1d66d',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+<script id="news-data-render">
+/* Renders the news list from data/news.json so admin edits appear here. */
+(function(){
+  var box=document.querySelector('.elementor-posts-container');
+  if(!box) return;
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmt(d){
+    if(!d) return '';
+    var dt=new Date(d+'T00:00:00');
+    if(isNaN(dt)) return esc(d);
+    return dt.toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'});
+  }
+  fetch('../data/news.json?t='+Date.now(),{cache:'no-store'})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(list){
+      if(!Array.isArray(list)||!list.length) return;
+      list=list.filter(function(n){return n.published!==false;});
+      if(!list.length) return;
+      box.innerHTML=list.map(function(n){
+        var img=n.image?(n.image.indexOf('data:')===0?n.image:'../'+n.image):'';
+        var href=n.url?('../'+n.url):'#';
+        return '<article class="elementor-post elementor-grid-item" role="listitem">'
+          +'<div class="elementor-post__card">'
+          +(img?'<a class="elementor-post__thumbnail__link" href="'+esc(href)+'" tabindex="-1"><div class="elementor-post__thumbnail"><img src="'+esc(img)+'" alt="" loading="lazy" /></div></a>':'')
+          +'<div class="elementor-post__text">'
+          +'<h4 class="elementor-post__title"><a href="'+esc(href)+'">'+esc(n.title||'')+'</a></h4>'
+          +(n.date?'<div class="elementor-post__meta-data"><span class="elementor-post-date">'+fmt(n.date)+'</span></div>':'')
+          +(n.excerpt?'<div class="elementor-post__excerpt"><p>'+esc(n.excerpt)+'</p></div>':'')
+          +'<a class="elementor-post__read-more" href="'+esc(href)+'">Read More</a>'
+          +'</div></div></article>';
+      }).join('');
+    })
+    .catch(function(){});
+})();
+</script>
+
+</body>
 </html>

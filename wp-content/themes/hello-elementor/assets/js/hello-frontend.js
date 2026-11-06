@@ -31,9 +31,13 @@
 
     var wrap = document.createElement('div');
     wrap.className = 'byd-admin-link';
-    wrap.style.cssText = 'text-align:center;padding:14px 0 10px;width:100%;';
-    wrap.innerHTML = '<a href="admin/index.html" style="color:#ffffff;opacity:.7;font-size:13px;' +
-      'text-decoration:underline;letter-spacing:.4px;">Admin</a>';
+    wrap.style.cssText = 'text-align:center;padding:16px 0 12px;width:100%;';
+    /* The footer's dark look comes from a parent section, so give the link its
+       own dark pill — it stays readable whatever is behind it. */
+    wrap.innerHTML = '<a href="admin/index.html" style="display:inline-block;' +
+      'background:#111111;color:#ffffff;font-size:12.5px;font-weight:600;' +
+      'padding:7px 16px;border-radius:999px;text-decoration:none;' +
+      'letter-spacing:.5px;opacity:.85;">Admin</a>';
     host.appendChild(wrap);
   }
 

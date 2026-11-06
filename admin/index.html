@@ -108,7 +108,6 @@
     <div class="spacer"></div>
     <a class="btn sm" href="../index.html" target="_blank">View site ↗</a>
     <a class="btn sm" href="settings.html">Settings</a>
-    <button class="btn sm" onclick="BYD.logout()">Sign out</button>
   </div>
 </div>
 
@@ -268,9 +267,7 @@
 <script src="app.js"></script>
 <script>
 /* ===================== boot ===================== */
-if (BYD.requireAuth()) {
-  BYD.loadData().then(() => { renderCars(); renderNews(); renderTokenBanner(); });
-}
+BYD.loadData().then(() => { renderCars(); renderNews(); renderTokenBanner(); });
 
 /* ===================== tabs ===================== */
 document.querySelectorAll('.tab').forEach(t => {

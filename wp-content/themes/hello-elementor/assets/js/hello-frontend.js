@@ -22,12 +22,19 @@
   function addAdminLink() {
     var footer = document.querySelector('footer.elementor-location-footer');
     if (!footer || footer.querySelector('.byd-admin-link')) return;
+
+    /* Put the link INSIDE the footer's dark container, otherwise white text
+       lands on the white page background and is invisible. */
+    var host = footer.querySelector('.e-con-inner') || footer;
+    var inners = footer.querySelectorAll('.e-con-inner');
+    if (inners.length) host = inners[inners.length - 1];
+
     var wrap = document.createElement('div');
     wrap.className = 'byd-admin-link';
-    wrap.style.cssText = 'text-align:center;padding:18px 0 6px;';
-    wrap.innerHTML = '<a href="admin/index.html" style="color:#ffffff;opacity:.75;font-size:13px;' +
+    wrap.style.cssText = 'text-align:center;padding:14px 0 10px;width:100%;';
+    wrap.innerHTML = '<a href="admin/index.html" style="color:#ffffff;opacity:.7;font-size:13px;' +
       'text-decoration:underline;letter-spacing:.4px;">Admin</a>';
-    footer.appendChild(wrap);
+    host.appendChild(wrap);
   }
 
   function applySettings() {
